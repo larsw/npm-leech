@@ -1,0 +1,16 @@
+{
+  "name": "npm-leech",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "archiver": "^1.2.0",
+    "async": "^2.1.2",
+    "axios": "^0.15.2",
+    "es6-set": "^0.1.4",
+    "minimist": "^1.2.0"
+  }
+}

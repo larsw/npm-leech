@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "async": "registry:npm/async#2.0.1+20160815105832"
+  },
+  "globalDependencies": {
+    "archiver": "registry:dt/archiver#0.15.0+20161019121405",
+    "async": "registry:dt/async#2.0.1+20161101122556",
+    "axios": "registry:dt/axios#0.9.1+20161016142654",
+    "node": "registry:env/node#6.0.0+20161105011511"
+  }
+}
