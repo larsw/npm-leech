@@ -1,8 +1,18 @@
 {
   "name": "npm-leech",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.1.5",
+  "main": "src/index.js",
+  "bin": "src/index.js",
   "license": "MIT",
+  "author": {
+    "name": "Lars Wilhelmsen",
+    "email": "lars@sral.org"
+  },
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:larsw/npm-leech.git"
+  },
   "scripts": {
     "start": "node src/index.js"
   },

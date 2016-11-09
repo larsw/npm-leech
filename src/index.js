@@ -1,27 +1,42 @@
+#!/usr/bin/env node
+
 var fs = require('fs')
+var path = require('path')
 var async = require('async')
 var axios = require('axios/lib/axios.js')
 var Set = require('es6-set')
-var package = require('../package.json');
 var parseArgs = require('minimist')
 var archiver = require('archiver')
 
 var opts = {
-  string: ['output'],
-  boolean: ['zip'],
+  boolean: ['dev'],
+  string: ['input', 'output', 'registry'],
   alias: {
-    'zip': 'z',
+    'input': 'i',
     'output': 'o',
-    'concurrency': 'c'
+    'concurrency': 'c',
+    'dev': 'd',
+    'transitive-dev': 'D',
+    'registry': 'r'
   },
   default: {
-    'zip': true,
+    'registry': 'http://registry.npmjs.org/',
+    'input': './package.json',
     'output': './npm-tarballs.tar',
-    'concurrency': 2
+    'concurrency': 4,
+    'dev': false,
+    'transitive-dev': false
   }
 }
 
 var args = parseArgs(process.argv.slice(2), opts)
+
+if (!fs.existsSync(args.input)) {
+  console.log('The input file', args.input, 'does not exist.')
+  process.exit(-1)
+}
+
+var package = require(path.resolve(args.input));
 
 var zipStream = fs.createWriteStream(args.output)
 var zipArchive = archiver('tar', {
@@ -43,15 +58,12 @@ zipArchive.on('error', function(err) {
 
 zipArchive.pipe(zipStream)
 
-var registryBaseUrl = 'http://registry.npmjs.org/';
-var downloadFolder = './packages';
-
 var downloaded = new Set()
 
 function getOutputFileName(task) {
   var re = /.*\/(.*)$/g;
   fileName = re.exec(task)
-  return fileName[1] //'./packages/' + fileName[1]
+  return fileName[1]
 }
 
 var tarballQueue = async.queue(function (task, finished) {
@@ -61,45 +73,57 @@ var tarballQueue = async.queue(function (task, finished) {
     'Accept': 'application/octet-stream'
   } }).then(function (response) {
 
-    // append tarball to zip
     zipArchive.append(response.data, {
         name: fileName,
         finished: finished
       })
-    // if (!fs.existsSync(fileName)) {
-    //   var writeStream = fs.createWriteStream(fileName)
-    //   response.data.pipe(writeStream)
-    // }
+
   }).catch(function (err) {
     finished(err)
     console.log('meta-err', err)
   })
-}, 1 /*args.concurrency*/)
+}, args.concurrency)
 
 var metaQueue = async.queue(function (task, finished) {
   console.log('[meta]', task)
   downloaded.add(task)
   axios.get(task).then(function (response) {
+
     if (response.data.dependencies) {
       metaQueue.push(generateMetaUrls(response.data.dependencies))
     }
+    if (args['transitive-dev'] && response.data.devDependencies) {
+      metaQueue.push(generateMetaUrls(response.data.devDependencies))
+    }
     tarballQueue.push(response.data.dist.tarball)
     finished()
+
   }).catch(function (err) {
      console.log('pkg-err', err)
+     finished(err)
   })
 }, args.concurrency);
 
-function generateMetaUrls(deps) {
-  return Object.getOwnPropertyNames(deps).map(function (x) {
-    return registryBaseUrl + x + '/' + deps[x]
-  }).filter(function (x) { return !downloaded.has(x) })
+function generateMetaUrls(dependencySection) {
+  return Object.getOwnPropertyNames(dependencySection)
+               .map(function (id) {
+                  return args.registry + id + '/' + dependencySection[id]
+                })
+                .filter(function (x) { 
+                  return !downloaded.has(x)
+                })
 }
 
-var urls = generateMetaUrls(package.dependencies);
+if (!package.dependencies) {
+  console.warn('No dependencies section in the specified input', args.input)
+} else {
+  metaQueue.push(generateMetaUrls(package.dependencies))
+}
 
-metaQueue.push(urls, function (err) {
-  if (err) {
-    console.log(err)
+if (args.dev) {
+  if (!package.devDependencies) {
+    console.warn('No devDependencies section in the specified input', args.input)
+  } else {
+    metaQueue.push(generateMetaUrls(package.devDependencies))
   }
-})
+}
