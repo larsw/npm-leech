@@ -1,26 +1,63 @@
 {
   "name": "npm-leech",
   "version": "0.1.5",
-  "main": "src/index.js",
-  "bin": "src/index.js",
+  "main": "dist/cli.js",
+  "bin": "dist/cli.js",
   "license": "MIT",
   "author": {
     "name": "Lars Wilhelmsen",
     "email": "lars@sral.org"
   },
-  "description": "",
+  "keywords": [
+    "npm",
+    "download",
+    "artifactory",
+    "private-repository",
+    "offline",
+    "isolation",
+    "isolated-network"
+  ],
+  "description": "Small utility to leech all direct and transitive npm packages for a given package.json file.",
   "repository": {
     "type": "git",
     "url": "git@github.com:larsw/npm-leech.git"
   },
   "scripts": {
-    "start": "node src/index.js"
+    "dist": "babel lib -d dist",
+    "start": "npm run dist&&node dist/cli.js",
+    "test": "ava",
+    "lint": "eslint lib/*.js",
+    "clean": "rimraf dist *.tar *.log",
+    "prepublish": "npm run clean&&npm run lint&&npm test&&npm run dist"
   },
   "dependencies": {
     "archiver": "^1.2.0",
     "async": "^2.1.2",
     "axios": "^0.15.2",
+    "chalk": "^1.1.3",
     "es6-set": "^0.1.4",
-    "minimist": "^1.2.0"
+    "minimist": "^1.2.0",
+    "pace": "^0.0.4",
+    "progress": "^1.1.8",
+    "update-notifier": "^1.0.2"
+  },
+  "devDependencies": {
+    "ava": "^0.16.0",
+    "babel-cli": "^6.18.0",
+    "babel-eslint": "^7.1.0",
+    "babel-plugin-transform-flow-comments": "^6.17.0",
+    "babel-plugin-transform-flow-strip-types": "^6.18.0",
+    "babel-preset-es2015": "^6.18.0",
+    "babel-preset-stage-0": "^6.16.0",
+    "eslint": "^3.9.1",
+    "glob": "^7.1.1",
+    "husky": "^0.11.9",
+    "meow": "^3.7.0",
+    "rimraf": "^2.5.4"
+  },
+  "ava": {
+    "require": [
+      "babel-register"
+    ]
   }
 }
