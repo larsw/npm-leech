@@ -1,6 +1,6 @@
 {
   "name": "npm-leech",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "main": "dist/cli.js",
   "bin": "dist/cli.js",
   "license": "MIT",
@@ -27,7 +27,7 @@
     "start": "npm run dist&&node dist/cli.js",
     "test": "ava",
     "lint": "eslint lib/*.js",
-    "clean": "rimraf dist *.tar *.log",
+    "clean": "rimraf dist *.tar *.log test/*.tar",
     "prepublish": "npm run clean&&npm run lint&&npm test&&npm run dist"
   },
   "dependencies": {
