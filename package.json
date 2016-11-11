@@ -39,7 +39,8 @@
     "minimist": "^1.2.0",
     "pace": "^0.0.4",
     "progress": "^1.1.8",
-    "update-notifier": "^1.0.2"
+    "update-notifier": "^1.0.2",
+    "meow": "^3.7.0"
   },
   "devDependencies": {
     "ava": "^0.16.0",
@@ -52,7 +53,6 @@
     "eslint": "^3.9.1",
     "glob": "^7.1.1",
     "husky": "^0.11.9",
-    "meow": "^3.7.0",
     "rimraf": "^2.5.4"
   },
   "ava": {
