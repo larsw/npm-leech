@@ -51,8 +51,12 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 
 var composeImpl = function composeImpl(f, g) {
-  return function (x) {
-    return g(f(x));
+  return function () {
+    for (var _len = arguments.length, x = Array(_len), _key = 0; _key < _len; _key++) {
+      x[_key] = arguments[_key];
+    }
+
+    return g(f(x.join(' ')));
   };
 };
 
@@ -107,9 +111,15 @@ exports.default = function (opts /*: LeechOpts*/) {
   var downloaded = new _es6Set2.default();
 
   var getOutputFileName = function getOutputFileName(task) {
-    var re = /.*\/(.*)$/g;
-    var fileName = re.exec(task);
-    return fileName[1];
+    if (task.indexOf('@') === -1) {
+      var re = /.*\/(.*)$/g;
+      var fileName = re.exec(task);
+      return fileName[1];
+    } else {
+      var _re = /(@[^\/]+\/).*(?:\/(.*))$/g;
+      var _fileName = _re.exec(task);
+      return _fileName[1] + _fileName[2];
+    }
   };
 
   /*:: declare function Worker(url: string, cb: ((err:?string) => any)): any;*/
@@ -162,11 +172,15 @@ exports.default = function (opts /*: LeechOpts*/) {
 
   var toUrls = function toUrls(deps /*: DependencyMap*/) {
     return Object.getOwnPropertyNames(deps).map(function (id /*: string*/) {
-      return '' + opts.registry + id + '/' + deps[id];
+      return '' + opts.registry + uriencodeSpecific(id) + '/' + deps[id];
     }).filter(function (x) {
       return !downloaded.has(x);
     });
   };
+
+  function uriencodeSpecific(id) {
+    return id.replace(/\//g, '%2F');
+  }
 
   if (!packageJson.dependencies) {
     warn('No dependencies section in the specified input', opts.input);
