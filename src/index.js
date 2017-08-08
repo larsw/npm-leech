@@ -61,9 +61,15 @@ zipArchive.pipe(zipStream)
 var downloaded = new Set()
 
 function getOutputFileName(task) {
-  var re = /.*\/(.*)$/g;
-  fileName = re.exec(task)
-  return fileName[1]
+  if (task.indexOf("@") === -1) {
+    const re = /.*\/(.*)$/g;
+    const fileName = re.exec(task);
+    return fileName[1];
+  } else {
+    const re = /(@[^\/]+\/).*(?:\/(.*))$/g;
+    const fileName = re.exec(task);
+    return fileName[1] + fileName[2];
+  }
 }
 
 var tarballQueue = async.queue(function (task, finished) {
@@ -107,11 +113,15 @@ var metaQueue = async.queue(function (task, finished) {
 function generateMetaUrls(dependencySection) {
   return Object.getOwnPropertyNames(dependencySection)
                .map(function (id) {
-                  return args.registry + id + '/' + dependencySection[id]
+                  return args.registry + uriencodeSpecific(id) + '/' + dependencySection[id]
                 })
                 .filter(function (x) { 
                   return !downloaded.has(x)
                 })
+}
+
+function uriencodeSpecific(id) {
+  return id.replace(/\//g, "%2F");
 }
 
 if (!package.dependencies) {
