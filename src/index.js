@@ -59,6 +59,7 @@ zipArchive.on('error', function(err) {
 zipArchive.pipe(zipStream)
 
 var downloaded = new Set()
+var packages = new Set()
 
 function getOutputFileName(task) {
   if (task.indexOf("@") === -1) {
@@ -75,19 +76,26 @@ function getOutputFileName(task) {
 var tarballQueue = async.queue(function (task, finished) {
   console.log('[pkg]', task)
   var fileName = getOutputFileName(task)
-  axios.get(task, { responseType: 'stream', headers: {
-    'Accept': 'application/octet-stream'
-  } }).then(function (response) {
+  if(packages.has(fileName)){
+    finished()
+  }
+  else{
+    packages.add(fileName)
+    axios.get(task, { responseType: 'stream', headers: {
+        'Accept': 'application/octet-stream'
+      }}).then(function (response) {
 
-    zipArchive.append(response.data, {
-        name: fileName,
-        finished: finished
+        zipArchive.append(response.data, {
+            name: fileName,
+            finished: finished
+          })
+
+      }).catch(function (err) {
+        finished(err)
+        console.log('meta-err', err)
       })
-
-  }).catch(function (err) {
-    finished(err)
-    console.log('meta-err', err)
-  })
+  }
+  
 }, args.concurrency)
 
 var metaQueue = async.queue(function (task, finished) {
