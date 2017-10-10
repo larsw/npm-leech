@@ -137,7 +137,7 @@ function findPackageLockResolvedUrls (obj) {
             .forEach(x => {
               if (obj.dependencies[x].dependencies)
               {
-                  urls = findResolvedUrls(obj.dependencies[x]);
+                  urls = findPackageLockResolvedUrls(obj.dependencies[x]);
               }
               if (obj.dependencies[x].resolved) {
                   urls.push(obj.dependencies[x].resolved);
