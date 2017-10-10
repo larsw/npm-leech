@@ -131,13 +131,13 @@ function uriencodeSpecific(id) {
 }
 
 function findPackageLockResolvedUrls (obj) {
-  urls = [];
+  var urls = [];
   if (obj.dependencies) {
       Object.getOwnPropertyNames(obj.dependencies)
             .forEach(x => {
               if (obj.dependencies[x].dependencies)
               {
-                  urls = findPackageLockResolvedUrls(obj.dependencies[x]);
+                  urls.push(...findPackageLockResolvedUrls(obj.dependencies[x]));
               }
               if (obj.dependencies[x].resolved) {
                   urls.push(obj.dependencies[x].resolved);
