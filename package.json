@@ -17,9 +17,9 @@
     "start": "node src/index.js"
   },
   "dependencies": {
-    "archiver": "^1.2.0",
+    "archiver": "^2.0.3",
     "async": "^2.1.2",
-    "axios": "^0.15.2",
+    "axios": "^0.16.2",
     "es6-set": "^0.1.4",
     "minimist": "^1.2.0"
   }

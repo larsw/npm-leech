@@ -21,7 +21,7 @@ var opts = {
   },
   default: {
     'registry': 'http://registry.npmjs.org/',
-    'input': './package.json',
+    'input': './package-lock.json',
     'output': './npm-tarballs.tar',
     'concurrency': 4,
     'dev': false,
@@ -36,7 +36,13 @@ if (!fs.existsSync(args.input)) {
   process.exit(-1)
 }
 
-var package = require(path.resolve(args.input));
+var package = undefined;
+var packageLock = undefined;
+if (args.input.indexOf('package-lock.json') > -1) {
+  packageLock = require(path.resolve(args.input));
+} else {
+  package = require(path.resolve(args.input));  
+}
 
 var zipStream = fs.createWriteStream(args.output)
 var zipArchive = archiver('tar', {
@@ -124,16 +130,40 @@ function uriencodeSpecific(id) {
   return id.replace(/\//g, "%2F");
 }
 
-if (!package.dependencies) {
-  console.warn('No dependencies section in the specified input', args.input)
-} else {
-  metaQueue.push(generateMetaUrls(package.dependencies))
+function findPackageLockResolvedUrls (obj) {
+  urls = [];
+  if (obj.dependencies) {
+      Object.getOwnPropertyNames(obj.dependencies)
+            .forEach(x => {
+              if (obj.dependencies[x].dependencies)
+              {
+                  urls = findResolvedUrls(obj.dependencies[x]);
+              }
+              if (obj.dependencies[x].resolved) {
+                  urls.push(obj.dependencies[x].resolved);
+                }
+            });
+  }
+  return urls;
+}
+
+if (package) {
+
+  if (!package.dependencies) {
+    console.warn('No dependencies section in the specified input', args.input)
+  } else {
+    metaQueue.push(generateMetaUrls(package.dependencies))
+  }
 }
 
 if (args.dev) {
-  if (!package.devDependencies) {
+  if (package && !package.devDependencies) {
     console.warn('No devDependencies section in the specified input', args.input)
   } else {
     metaQueue.push(generateMetaUrls(package.devDependencies))
   }
+}
+
+if (packageLock) {
+  tarballQueue.push(findPackageLockResolvedUrls(packageLock))
 }
