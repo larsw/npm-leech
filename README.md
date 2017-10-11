@@ -1,16 +1,16 @@
 npm-leech
 ===========
 
-Small utility to leech all direct and transitive npm packages for a given package.json file.
+Small utility to leech all direct and transitive npm packages for a given package.json or package-lock.json file.
 
-Ideal for mirroring a given set of packages to a private repository like Artifactory. 
+Ideal for mirroring a given set of packages to a private repository like JFrog Artifactory or NPM Registry.
 
 ```
     usage
-      $ npm-leech [-i ../package.json] [-o foo.tar] [-c] [-d] [-D] 
+      $ npm-leech [-i package.json|package-lock.json] [-o foo.tar] [-c] [-d] [-D] 
 
     options
-      --input, -i            source package.json (default: ./package.json)
+      --input, -i            source package.json or package-lock.json (default: ./package-lock.json)
       --output, -o           target tarballs tar (default: ./npm-tarballs.tar)
       --concurrency, -c      number of concurrent retrieval tasks for meta/pkg (default: 4)
       --dev, -d              leech devDependencies in source. (default: false)
