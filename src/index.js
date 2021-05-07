@@ -9,9 +9,10 @@ var parseArgs = require('minimist')
 var archiver = require('archiver')
 
 var opts = {
-  boolean: ['dev'],
+  boolean: ['artifactory', 'dev'],
   string: ['input', 'output', 'registry'],
   alias: {
+    'artifactory': 'a',
     'input': 'i',
     'output': 'o',
     'concurrency': 'c',
@@ -20,6 +21,7 @@ var opts = {
     'registry': 'r'
   },
   default: {
+    'artifactory': false,
     'registry': 'http://registry.npmjs.org/',
     'input': './package-lock.json',
     'output': './npm-tarballs.tar',
@@ -73,9 +75,30 @@ function getOutputFileName(task) {
     const fileName = re.exec(task);
     return fileName[1];
   } else {
-    const re = /(@[^\/]+\/).*(?:\/(.*))$/g;
-    const fileName = re.exec(task);
-    return fileName[1] + fileName[2];
+    if (args.artifactory) {
+      // Artifactory uses this layout:
+      // @scope/package/-/@scope/package-version.tgz
+      //
+      // Regexp explained. Saved here: https://regex101.com/r/kol4vR/1
+      // (@[^\/]+\/)     = Match "@scope/"
+      // (.*)            = Match "package
+      // (\d*\.\d*\.\d*) = Match version
+      // (.*)            = Match file extension, here "tgz"
+      const re = /(@[^\/]+\/).*(?:\/(.*)\-(\d*\.\d*\.\d*)\.(.*))$/g;
+      const fileName = re.exec(task);
+      // The output from the regexp:
+      // fileName[1]: @scope/
+      // fileName[2]: filename
+      // fileName[3]: version
+      // fileName[4]: file type, here "tgz". @todo: If npm never uses other file ending we can remove it.
+      return fileName[1] + fileName[2] + "/-/" + fileName[1] + fileName[2] + "-" + fileName[3] + "." + fileName[4]
+    } else {
+      // Return default format for scoped packages:
+      // @scope/package-version.tgz
+      const re = /(@[^\/]+\/).*(?:\/(.*))$/g;
+      const fileName = re.exec(task);
+      return fileName[1] + fileName[2];
+    }
   }
 }
 
@@ -155,8 +178,11 @@ function findPackageLockResolvedUrls (obj) {
   return urls;
 }
 
-if (package) {
+if (args.artifactory) {
+  console.info("Using Artifactory layout of scoped packages")
+}
 
+if (package) {
   if (!package.dependencies) {
     console.warn('No dependencies section in the specified input', args.input)
   } else {
