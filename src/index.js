@@ -83,8 +83,11 @@ function getOutputFileName(task) {
       // (@[^\/]+\/)     = Match "@scope/"
       // (.*)            = Match "package
       // (\d*\.\d*\.\d*) = Match version
+      // [.-]            = Match any of '.' or '-'. Normally '.' here.
+      //                   Got a special case of name: react-docgen-typescript-plugin-1.0.2-canary.3c70e01.0.tgz
+      //                   Where the file name does not end on ".tgz" after version, but have a "-canary.*" text.
       // (.*)            = Match file extension, here "tgz"
-      const re = /(@[^\/]+\/).*(?:\/(.*)\-(\d*\.\d*\.\d*)\.(.*))$/g;
+      const re = /(@[^\/]+\/).*(?:\/(.*)\-(\d*\.\d*\.\d*)[.-](.*))$/g;
       const fileName = re.exec(task);
       // The output from the regexp:
       // fileName[1]: @scope/
