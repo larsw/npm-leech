@@ -22,7 +22,7 @@ var opts = {
   },
   default: {
     'artifactory': false,
-    'registry': 'http://registry.npmjs.org/',
+    'registry': 'https://registry.npmjs.org/',
     'input': './package-lock.json',
     'output': './npm-tarballs.tar',
     'concurrency': 4,
